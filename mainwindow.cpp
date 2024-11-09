@@ -1,5 +1,8 @@
+// mainwindow.cpp
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
+#include <QPushButton>
+#include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -30,13 +33,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->pushButton_dot, &QPushButton::clicked, this, &MainWindow::on_pushButton_dot_clicked);
     // クリアボタンに対してスロットを接続
     connect(ui->pushButton_Clear, &QPushButton::clicked, this, &MainWindow::on_pushButton_Clear_clicked);
-    // 足し算ボタンに対してスロットを接続
+    // 演算子ボタンに対してスロットを接続
     connect(ui->pushButton_Add, &QPushButton::clicked, this, &MainWindow::on_pushButton_Add_clicked);
-    // 引き算ボタンに対してスロットを接続
     connect(ui->pushButton_Subtract, &QPushButton::clicked, this, &MainWindow::on_pushButton_Subtract_clicked);
-    // 掛け算ボタンに対してスロットを接続
     connect(ui->pushButton_Multiply, &QPushButton::clicked, this, &MainWindow::on_pushButton_Multiply_clicked);
-    // 割り算ボタンに対してスロットを接続
     connect(ui->pushButton_Divide, &QPushButton::clicked, this, &MainWindow::on_pushButton_Divide_clicked);
     // イコールボタンに対してスロットを接続
     connect(ui->pushButton_Equal, &QPushButton::clicked, this, &MainWindow::on_pushButton_Equal_clicked);
@@ -47,7 +47,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-// ヘルパー関数: 最後の文字が演算子かどうかをチェック
+// 最後の文字が演算子かどうかをチェック
 bool MainWindow::isLastCharOperator()
 {
     QString text = ui->textBrowser->toPlainText();
@@ -205,20 +205,16 @@ void MainWindow::on_pushButton_Add_clicked()
             return;
         }
 
-        // 既に演算子が設定されている場合は計算を実行
-        if(!currentOperator.isEmpty()){
-            on_pushButton_Equal_clicked();
-            currentText = ui->textBrowser->toPlainText();
+        // ディスプレイが "0" の場合は置き換える
+        if(currentText == "0"){
+            ui->textBrowser->setText("0+");
         }
-
-        // 最初の数値を保存
-        firstNumber = currentText.toDouble();
+        else{
+            ui->textBrowser->setText(currentText + "+");
+        }
 
         // 現在の演算子を "+" に設定
         currentOperator = "+";
-
-        // ディスプレイに演算子を追加
-        ui->textBrowser->setText(QString::number(firstNumber) + "+");
 
         // 演算子がクリックされたことをフラグで示す
         isOperatorClicked = true;
@@ -243,20 +239,16 @@ void MainWindow::on_pushButton_Subtract_clicked()
             return;
         }
 
-        // 既に演算子が設定されている場合は計算を実行
-        if(!currentOperator.isEmpty()){
-            on_pushButton_Equal_clicked();
-            currentText = ui->textBrowser->toPlainText();
+        // ディスプレイが "0" の場合は置き換える
+        if(currentText == "0"){
+            ui->textBrowser->setText("0-");
         }
-
-        // 最初の数値を保存
-        firstNumber = currentText.toDouble();
+        else{
+            ui->textBrowser->setText(currentText + "-");
+        }
 
         // 現在の演算子を "-" に設定
         currentOperator = "-";
-
-        // ディスプレイに演算子を追加
-        ui->textBrowser->setText(QString::number(firstNumber) + "-");
 
         // 演算子がクリックされたことをフラグで示す
         isOperatorClicked = true;
@@ -281,20 +273,16 @@ void MainWindow::on_pushButton_Multiply_clicked()
             return;
         }
 
-        // 既に演算子が設定されている場合は計算を実行
-        if(!currentOperator.isEmpty()){
-            on_pushButton_Equal_clicked();
-            currentText = ui->textBrowser->toPlainText();
+        // ディスプレイが "0" の場合は置き換える
+        if(currentText == "0"){
+            ui->textBrowser->setText("0×");
         }
-
-        // 最初の数値を保存
-        firstNumber = currentText.toDouble();
+        else{
+            ui->textBrowser->setText(currentText + QChar(0x00D7));
+        }
 
         // 現在の演算子を "*" に設定
         currentOperator = "*";
-
-        // ディスプレイに演算子を追加
-        ui->textBrowser->setText(QString::number(firstNumber) + "×");
 
         // 演算子がクリックされたことをフラグで示す
         isOperatorClicked = true;
@@ -319,20 +307,16 @@ void MainWindow::on_pushButton_Divide_clicked()
             return;
         }
 
-        // 既に演算子が設定されている場合は計算を実行
-        if(!currentOperator.isEmpty()){
-            on_pushButton_Equal_clicked();
-            currentText = ui->textBrowser->toPlainText();
+        // ディスプレイが "0" の場合は置き換える
+        if(currentText == "0"){
+            ui->textBrowser->setText("0÷");
         }
-
-        // 最初の数値を保存
-        firstNumber = currentText.toDouble();
+        else{
+            ui->textBrowser->setText(currentText + QChar(0x00F7));
+        }
 
         // 現在の演算子を "/" に設定
         currentOperator = "/";
-
-        // ディスプレイに演算子を追加
-        ui->textBrowser->setText(QString::number(firstNumber) + "÷");
 
         // 演算子がクリックされたことをフラグで示す
         isOperatorClicked = true;
@@ -342,10 +326,10 @@ void MainWindow::on_pushButton_Divide_clicked()
 // イコールボタンの処理
 void MainWindow::on_pushButton_Equal_clicked()
 {
-    QString currentText = ui->textBrowser->toPlainText();
+    QString expression = ui->textBrowser->toPlainText();
 
-    // 演算子が設定されていない場合は何もしない
-    if(currentOperator.isEmpty()){
+    // "Error" の場合は何もしない
+    if(expression == "Error"){
         return;
     }
 
@@ -354,51 +338,81 @@ void MainWindow::on_pushButton_Equal_clicked()
         return;
     }
 
-    // 一時的なテキストを作成し、「×」を "*" に、「÷」を "/" に置き換える
-    QString tempText = currentText;
-    tempText.replace("×", "*");
-    tempText.replace("÷", "/");
+    // 演算子を統一（× を * に、÷ を / に）
+    expression.replace(QChar(0x00D7), "*");
+    expression.replace(QChar(0x00F7), "/");
 
-    // ディスプレイから演算子以降の数値を取得
-    QString secondNumberStr = tempText.mid(tempText.lastIndexOf(currentOperator) + 1);
+    // トークン化（数字と演算子を分ける）
+    QStringList tokens;
+    QString numberBuffer = "";
 
-    // 数値に変換
-    bool ok;
-    secondNumber = secondNumberStr.toDouble(&ok);
-    if(!ok){
-        ui->textBrowser->setText("Error");
-        currentOperator = "";
-        isOperatorClicked = false;
+    for(int i = 0; i < expression.length(); ++i){
+        QChar c = expression[i];
+        if(c.isDigit() || c == '.'){
+            numberBuffer += c;
+        }
+        else {
+            if(!numberBuffer.isEmpty()){
+                tokens.append(numberBuffer);
+                numberBuffer = "";
+            }
+            tokens.append(QString(c));
+        }
+    }
+    if(!numberBuffer.isEmpty()){
+        tokens.append(numberBuffer);
+    }
+
+    // 計算の実行（左から右へ順に計算）
+    if(tokens.isEmpty()){
         return;
     }
 
-    double result = 0.0;
+    bool ok;
+    double result = tokens[0].toDouble(&ok);
+    if(!ok){
+        ui->textBrowser->setText("Error");
+        return;
+    }
 
-    if(currentOperator == "+"){
-        result = firstNumber + secondNumber;
-    }
-    else if(currentOperator == "-"){
-        result = firstNumber - secondNumber;
-    }
-    else if(currentOperator == "*"){
-        result = firstNumber * secondNumber;
-    }
-    else if(currentOperator == "/"){
-        if(secondNumber != 0){
-            result = firstNumber / secondNumber;
+    for(int i = 1; i < tokens.size(); i += 2){
+        if(i + 1 >= tokens.size()){
+            break;
+        }
+        QString op = tokens[i];
+        double num = tokens[i + 1].toDouble(&ok);
+        if(!ok){
+            ui->textBrowser->setText("Error");
+            return;
+        }
+
+        if(op == "+"){
+            result += num;
+        }
+        else if(op == "-"){
+            result -= num;
+        }
+        else if(op == "*"){
+            result *= num;
+        }
+        else if(op == "/"){
+            if(num == 0){
+                ui->textBrowser->setText("Error");
+                return;
+            }
+            result /= num;
         }
         else{
+            // 不明な演算子
             ui->textBrowser->setText("Error");
-            currentOperator = "";
-            isOperatorClicked = false;
             return;
         }
     }
 
-    // 結果をディスプレイに表示
-    ui->textBrowser->setText(QString::number(result));
+    // 結果を表示（小数点以下15桁まで）
+    ui->textBrowser->setText(QString::number(result, 'g', 15));
 
-    // 演算子をリセット
+    // 状態をリセット
     currentOperator = "";
     isOperatorClicked = false;
 }

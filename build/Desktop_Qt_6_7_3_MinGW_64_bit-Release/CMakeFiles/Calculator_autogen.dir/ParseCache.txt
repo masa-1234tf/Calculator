@@ -166,6 +166,6 @@ C:/programing_file/Calculator/mainwindow.h
  mdp:C:/Qt/6.7.3/msvc2019_64/include/QtWidgets/qtwidgetsglobal.h
  mdp:C:/Qt/6.7.3/msvc2019_64/include/QtWidgets/qwidget.h
  mdp:C:/programing_file/Calculator/mainwindow.h
+C:/programing_file/Calculator/main.cpp
 C:/programing_file/Calculator/mainwindow.cpp
  uic:./ui_mainwindow.h
-C:/programing_file/Calculator/main.cpp
