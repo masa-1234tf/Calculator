@@ -1,0 +1,8 @@
+C:/programing_file/Calculator/build/Desktop_Qt_6_7_3_MinGW_64_bit-Release/CMakeFiles/Calculator.dir
+C:/programing_file/Calculator/build/Desktop_Qt_6_7_3_MinGW_64_bit-Release/CMakeFiles/edit_cache.dir
+C:/programing_file/Calculator/build/Desktop_Qt_6_7_3_MinGW_64_bit-Release/CMakeFiles/rebuild_cache.dir
+C:/programing_file/Calculator/build/Desktop_Qt_6_7_3_MinGW_64_bit-Release/CMakeFiles/list_install_components.dir
+C:/programing_file/Calculator/build/Desktop_Qt_6_7_3_MinGW_64_bit-Release/CMakeFiles/install.dir
+C:/programing_file/Calculator/build/Desktop_Qt_6_7_3_MinGW_64_bit-Release/CMakeFiles/install/local.dir
+C:/programing_file/Calculator/build/Desktop_Qt_6_7_3_MinGW_64_bit-Release/CMakeFiles/Calculator_autogen_timestamp_deps.dir
+C:/programing_file/Calculator/build/Desktop_Qt_6_7_3_MinGW_64_bit-Release/CMakeFiles/Calculator_autogen.dir
