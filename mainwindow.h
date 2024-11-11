@@ -55,6 +55,7 @@ private slots:
     void on_pushButton_Factorial_clicked(); // 階乗ボタンクリック時のスロット
     void on_pushButton_Combination_clicked();    // 組み合わせボタンクリック時のスロット
     void on_pushButton_Permutation_clicked();    // 順列ボタンクリック時のスロット
+    void on_pushButton_Comma_clicked();
 
 
 private:

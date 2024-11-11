@@ -68,6 +68,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Deg/Radボタンに対してスロットを接続
     connect(ui->pushButton_DegRad, &QPushButton::clicked, this, &MainWindow::on_pushButton_DegRad_clicked);
+    // カンマボタンに対してスロットを接続
+    //connect(ui->pushButton_Comma, &QPushButton::clicked, this, &MainWindow::on_pushButton_Comma_clicked);
 }
 
 MainWindow::~MainWindow()
@@ -84,18 +86,11 @@ int MainWindow::getPrecedence(const QString &op)
     if(op == "*" || op == "/" || op == "×" || op == "÷") {
         return 2;
     }
-    if(op == "^") { // 乗算
-        return 3;
+    if(op == "^") {
+        return 3; // べき乗は高い優先順位
     }
-    if(op == "nPr" || op == "nCr") {
-        return 4; // 順列と組み合わせは関数と同じ優先順位
-    }
-    if(op == "sqrt" || op == "sin" || op == "cos" || op == "tan" ||
-        op == "exp" || op == "log" || op == "ln"){
-        return 5; // 関数はさらに高い優先順位
-    }
-    if(op == "!"){ // 階乗
-        return 6;
+    if(op == "!") {
+        return 4; // 階乗はさらに高い優先順位
     }
     return 0;
 }
@@ -106,10 +101,9 @@ bool MainWindow::isLeftAssociative(const QString &op)
     if(op == "^" || op == "!") {
         return false; // 右結合
     }
-    // 現在の演算子はすべて左結合
+    // その他の演算子は左結合
     return true;
 }
-
 
 // 数式をトークンに分割する関数
 QList<QString> MainWindow::tokenize(const QString &expression)
@@ -123,6 +117,13 @@ QList<QString> MainWindow::tokenize(const QString &expression)
 
         if(c.isLetter()){
             functionBuffer += c;
+            // 特殊な関数名の処理
+            if(functionBuffer == "sqrt" || functionBuffer == "sin" || functionBuffer == "cos" ||
+                functionBuffer == "tan" || functionBuffer == "exp" || functionBuffer == "log" ||
+                functionBuffer == "ln" || functionBuffer == "nPr" || functionBuffer == "nCr"){
+                tokens.append(functionBuffer);
+                functionBuffer.clear();
+            }
         }
         else if(c.isDigit() || c == '.'){
             if(!functionBuffer.isEmpty()){
@@ -142,18 +143,12 @@ QList<QString> MainWindow::tokenize(const QString &expression)
             }
 
             if(c == '+' || c == '-' || c == '*' || c == '/' || c == '^' || c == '(' || c == ')' ||
-                c == QChar(0x00D7) || c == QChar(0x00F7) || c == '!'){
+                c == QChar(0x00D7) || c == QChar(0x00F7) || c == '!' || c == ','){
                 tokens.append(QString(c));
             }
             else{
                 // その他の文字は無視
             }
-        }
-
-        // 特殊な関数名の処理（nPr, nCr）
-        if(functionBuffer == "nPr" || functionBuffer == "nCr"){
-            tokens.append(functionBuffer);
-            functionBuffer.clear();
         }
     }
 
@@ -164,9 +159,11 @@ QList<QString> MainWindow::tokenize(const QString &expression)
         tokens.append(numberBuffer);
     }
 
+    // トークン化された結果を表示
+    qDebug() << "Tokens:" << tokens;
+
     return tokens;
 }
-
 
 // Shunting YardアルゴリズムでトークンをRPNに変換する関数
 QList<QString> MainWindow::shuntingYard(const QList<QString> &tokens)
@@ -185,15 +182,23 @@ QList<QString> MainWindow::shuntingYard(const QList<QString> &tokens)
                  token == "nPr" || token == "nCr"){
             operatorStack.push(token);
         }
+        else if(token == ","){
+            while(!operatorStack.isEmpty() && operatorStack.top() != "("){
+                outputQueue.append(operatorStack.pop());
+            }
+            if(operatorStack.isEmpty()){
+                qDebug() << "Error: Mismatched parentheses or misplaced comma";
+                outputQueue.clear();
+                return outputQueue;
+            }
+            // カンマの場合、'(' はポップしない
+        }
         else if(token == "+" || token == "-" || token == "*" || token == "/" || token == "^" ||
                  token == "×" || token == "÷" || token == "!"){
             while(!operatorStack.isEmpty()){
                 QString topOp = operatorStack.top();
                 if((getPrecedence(topOp) > getPrecedence(token)) ||
-                    (getPrecedence(topOp) == getPrecedence(token) && isLeftAssociative(topOp)) ||
-                    (topOp == "sqrt" || topOp == "sin" || topOp == "cos" || topOp == "tan" ||
-                     topOp == "exp" || topOp == "log" || topOp == "ln" ||
-                     topOp == "nPr" || topOp == "nCr")){
+                    (getPrecedence(topOp) == getPrecedence(token) && isLeftAssociative(topOp))){
                     outputQueue.append(operatorStack.pop());
                 }
                 else{
@@ -245,28 +250,86 @@ QList<QString> MainWindow::shuntingYard(const QList<QString> &tokens)
     return outputQueue;
 }
 
-
 // RPNを評価する関数
 double MainWindow::evaluateRPN(const QList<QString> &rpnTokens, bool &success)
 {
     QStack<double> evalStack;
     success = true;
 
+    qDebug() << "Evaluating RPN Tokens:" << rpnTokens; // RPNトークンの表示
+
     for(const QString &token : rpnTokens){
+        qDebug() << "Processing token:" << token << "Length:" << token.length();
+        for(int i = 0; i < token.length(); ++i){
+            qDebug() << "Character at position" << i << ":" << token.at(i) << "Code:" << token.at(i).unicode();
+        }
+
         bool isNumber;
         double num = token.toDouble(&isNumber);
         if(isNumber){
             evalStack.push(num);
         }
-        else if(token == "sqrt" || token == "sin" || token == "cos" || token == "tan" ||
-                 token == "exp" || token == "log" || token == "ln"){
-            // 関数の処理（既存のコード）
-            // 省略
+        else if(token == "+" || token == "-" || token == "*" || token == "/" ||
+                 token == "×" || token == "÷"){
+            if(evalStack.size() < 2){
+                success = false;
+                qDebug() << "Error: Insufficient values in stack for operator" << token;
+                return 0.0;
+            }
+            double right = evalStack.pop();
+            double left = evalStack.pop();
+            double result = 0.0;
+
+            if(token == "+"){
+                result = left + right;
+            }
+            else if(token == "-"){
+                result = left - right;
+            }
+            else if(token == "*" || token == "×"){
+                result = left * right;
+            }
+            else if(token == "/" || token == "÷"){
+                if(right == 0){
+                    success = false;
+                    qDebug() << "Error: Division by zero";
+                    return 0.0;
+                }
+                result = left / right;
+            }
+
+            evalStack.push(result);
+        }
+        else if(token == "^"){
+            if(evalStack.size() < 2){
+                success = false;
+                qDebug() << "Error: Insufficient values in stack for operator '^'";
+                return 0.0;
+            }
+            double exponent = evalStack.pop();
+            double base = evalStack.pop();
+            double result = std::pow(base, exponent);
+            evalStack.push(result);
+        }
+        else if(token == "!"){
+            if(evalStack.isEmpty()){
+                success = false;
+                qDebug() << "Error: Insufficient values in stack for operator '!'";
+                return 0.0;
+            }
+            double operand = evalStack.pop();
+            if(operand < 0 || operand != std::floor(operand)){
+                success = false;
+                qDebug() << "Error: Factorial of non-integer or negative number";
+                return 0.0;
+            }
+            unsigned long long result = factorial(static_cast<int>(operand));
+            evalStack.push(static_cast<double>(result));
         }
         else if(token == "nPr" || token == "nCr"){
             if(evalStack.size() < 2){
                 success = false;
-                qDebug() << "Error: Insufficient values in stack for operation" << token;
+                qDebug() << "Error: Insufficient values in stack for function" << token;
                 return 0.0;
             }
             double r = evalStack.pop();
@@ -274,12 +337,12 @@ double MainWindow::evaluateRPN(const QList<QString> &rpnTokens, bool &success)
 
             if(n < 0 || r < 0 || n != std::floor(n) || r != std::floor(r)){
                 success = false;
-                qDebug() << "Error: n and r must be non-negative integers for" << token;
+                qDebug() << "Error: n and r must be non-negative integers for function" << token;
                 return 0.0;
             }
             if(n < r){
                 success = false;
-                qDebug() << "Error: n must be greater than or equal to r for" << token;
+                qDebug() << "Error: n must be greater than or equal to r for function" << token;
                 return 0.0;
             }
 
@@ -293,10 +356,71 @@ double MainWindow::evaluateRPN(const QList<QString> &rpnTokens, bool &success)
 
             evalStack.push(static_cast<double>(result));
         }
-        else{
-            // その他の演算子の処理（既存のコード）
-            // 省略
+        else if(token == "sqrt" || token == "sin" || token == "cos" || token == "tan" ||
+                 token == "exp" || token == "log" || token == "ln"){
+            if(evalStack.isEmpty()){
+                success = false;
+                qDebug() << "Error: Insufficient values in stack for function" << token;
+                return 0.0;
+            }
+            double operand = evalStack.pop();
+            double result = 0.0;
+
+            if(token == "sqrt"){
+                if(operand < 0){
+                    success = false;
+                    qDebug() << "Error: Square root of negative number";
+                    return 0.0;
+                }
+                result = std::sqrt(operand);
+            }
+            else if(token == "sin"){
+                if(isDegree){
+                    operand = operand * M_PI / 180.0;
+                }
+                result = std::sin(operand);
+            }
+            else if(token == "cos"){
+                if(isDegree){
+                    operand = operand * M_PI / 180.0;
+                }
+                result = std::cos(operand);
+            }
+            else if(token == "tan"){
+                if(isDegree){
+                    operand = operand * M_PI / 180.0;
+                }
+                result = std::tan(operand);
+            }
+            else if(token == "exp"){
+                result = std::exp(operand);
+            }
+            else if(token == "log"){
+                if(operand <= 0){
+                    success = false;
+                    qDebug() << "Error: Logarithm of non-positive number";
+                    return 0.0;
+                }
+                result = std::log10(operand);
+            }
+            else if(token == "ln"){
+                if(operand <= 0){
+                    success = false;
+                    qDebug() << "Error: Natural logarithm of non-positive number";
+                    return 0.0;
+                }
+                result = std::log(operand);
+            }
+
+            evalStack.push(result);
         }
+        else{
+            success = false;
+            qDebug() << "Error: Unknown token" << token;
+            return 0.0;
+        }
+
+        qDebug() << "Current Stack:" << evalStack; // スタックの状態を表示
     }
 
     if(evalStack.size() != 1){
@@ -308,6 +432,39 @@ double MainWindow::evaluateRPN(const QList<QString> &rpnTokens, bool &success)
     return evalStack.pop();
 }
 
+// 階乗、順列、組み合わせの関数
+unsigned long long MainWindow::factorial(int n)
+{
+    if(n < 0){
+        return 0;
+    }
+    unsigned long long result = 1;
+    for(int i = 1; i <= n; ++i){
+        result *= i;
+        // オーバーフローを防ぐためにチェック
+        if(result == 0){
+            break;
+        }
+    }
+    return result;
+}
+
+unsigned long long MainWindow::permutation(int n, int r)
+{
+    if(n < r || n < 0 || r < 0){
+        return 0;
+    }
+    return factorial(n) / factorial(n - r);
+}
+
+unsigned long long MainWindow::combination(int n, int r)
+{
+    if(n < r || n < 0 || r < 0){
+        return 0;
+    }
+    return factorial(n) / (factorial(r) * factorial(n - r));
+}
+
 // 最後の文字が演算子かどうかをチェック
 bool MainWindow::isLastCharOperator()
 {
@@ -315,7 +472,7 @@ bool MainWindow::isLastCharOperator()
     if(text.isEmpty()) return false;
     QChar lastChar = text.at(text.length() - 1);
     return (lastChar == '+' || lastChar == '-' || lastChar == '*' || lastChar == '/' ||
-            lastChar == QChar(0x00D7) || lastChar == QChar(0x00F7));   // '×' と '÷' をQCharで追加
+            lastChar == QChar(0x00D7) || lastChar == QChar(0x00F7) || lastChar == '^');
 }
 
 // 数字入力に関しての共通の処理
@@ -601,21 +758,15 @@ void MainWindow::on_pushButton_LeftParen_clicked()
         currentText = "(";
     }
     else {
-        // もし演算子がクリックされた後でなければ、左括弧の前に演算子を追加する
+        // もし演算子がクリックされた後でなければ、左括弧の前に掛け算を追加する
         if(isOperatorClicked == false && !currentText.isEmpty()){
             // 最後の文字が数字または閉じ括弧である場合、掛け算を暗黙的に追加
             QChar lastChar = currentText.at(currentText.length() - 1);
             if(lastChar.isDigit() || lastChar == ')'){
                 currentText += QChar(0x00D7); // '×' を追加
-                currentText += "(";
-            }
-            else{
-                currentText += "(";
             }
         }
-        else{
-            currentText += "(";
-        }
+        currentText += "(";
     }
 
     ui->textBrowser->setText(currentText);
@@ -686,7 +837,7 @@ void MainWindow::on_pushButton_Equal_clicked()
     isOperatorClicked = false;
 }
 
-// 平方根ボタンの処理（修正後）
+// 平方根ボタンの処理
 void MainWindow::on_pushButton_Sqrt_clicked()
 {
     QString currentText = ui->textBrowser->toPlainText();
@@ -828,6 +979,7 @@ void MainWindow::on_pushButton_DegRad_clicked()
         ui->pushButton_DegRad->setText("Rad");
     }
 }
+
 //指数関数ボタンの処理
 void MainWindow::on_pushButton_Power_clicked()
 {
@@ -863,6 +1015,7 @@ void MainWindow::on_pushButton_Power_clicked()
     // 演算子がクリックされたことをフラグで示す
     isOperatorClicked = true;
 }
+
 // expボタンの処理
 void MainWindow::on_pushButton_Exp_clicked()
 {
@@ -961,6 +1114,8 @@ void MainWindow::on_pushButton_Ln_clicked()
 
     isOperatorClicked = false;
 }
+
+// 階乗ボタンの処理
 void MainWindow::on_pushButton_Factorial_clicked()
 {
     QString currentText = ui->textBrowser->toPlainText();
@@ -974,7 +1129,7 @@ void MainWindow::on_pushButton_Factorial_clicked()
     // そのため、階乗を直接追加します
     // ただし、演算子がクリックされた後の場合は追加しません
     if(isOperatorClicked){
-        // 一項演算子なので、演算子がクリックされた後でも適用できない
+        // 一項演算子なので、演算子がクリックされた後では適用できない
         return;
     }
 
@@ -990,37 +1145,8 @@ void MainWindow::on_pushButton_Factorial_clicked()
         }
     }
 }
-unsigned long long MainWindow::factorial(int n)
-{
-    if(n < 0){
-        return 0;
-    }
-    unsigned long long result = 1;
-    for(int i = 1; i <= n; ++i){
-        result *= i;
-        // オーバーフローを防ぐためにチェック
-        if(result == 0){
-            break;
-        }
-    }
-    return result;
-}
 
-unsigned long long MainWindow::permutation(int n, int r)
-{
-    if(n < r || n < 0 || r < 0){
-        return 0;
-    }
-    return factorial(n) / factorial(n - r);
-}
-
-unsigned long long MainWindow::combination(int n, int r)
-{
-    if(n < r || n < 0 || r < 0){
-        return 0;
-    }
-    return factorial(n) / (factorial(r) * factorial(n - r));
-}
+// 順列ボタンの処理
 void MainWindow::on_pushButton_Permutation_clicked()
 {
     QString currentText = ui->textBrowser->toPlainText();
@@ -1038,7 +1164,7 @@ void MainWindow::on_pushButton_Permutation_clicked()
         // もし演算子がクリックされた後でなければ、順列の前に掛け算を追加する
         if(!isOperatorClicked && !currentText.isEmpty()){
             QChar lastChar = currentText.at(currentText.length() - 1);
-            if(lastChar.isDigit() || lastChar == ')'){
+            if(lastChar.isDigit() || lastChar == ')' || lastChar == '!'){
                 currentText += QChar(0x00D7); // '×' を追加
             }
         }
@@ -1049,6 +1175,7 @@ void MainWindow::on_pushButton_Permutation_clicked()
     isOperatorClicked = false;
 }
 
+// 組み合わせボタンの処理
 void MainWindow::on_pushButton_Combination_clicked()
 {
     QString currentText = ui->textBrowser->toPlainText();
@@ -1066,7 +1193,7 @@ void MainWindow::on_pushButton_Combination_clicked()
         // もし演算子がクリックされた後でなければ、組み合わせの前に掛け算を追加する
         if(!isOperatorClicked && !currentText.isEmpty()){
             QChar lastChar = currentText.at(currentText.length() - 1);
-            if(lastChar.isDigit() || lastChar == ')'){
+            if(lastChar.isDigit() || lastChar == ')' || lastChar == '!'){
                 currentText += QChar(0x00D7); // '×' を追加
             }
         }
@@ -1076,4 +1203,23 @@ void MainWindow::on_pushButton_Combination_clicked()
     ui->textBrowser->setText(currentText);
     isOperatorClicked = false;
 }
+// カンマボタンの処理
+void MainWindow::on_pushButton_Comma_clicked()
+{
+    QString currentText = ui->textBrowser->toPlainText();
 
+    // "Error" の場合は何もしない
+    if(currentText == "Error"){
+        return;
+    }
+
+    // カンマは関数の引数を区切るために使用されます
+    // 演算子がクリックされた後ではなく、関数内でのみ有効
+    // したがって、関数が開かれているかどうかを確認する必要があります
+
+    // 現在のテキストにカンマを追加
+    currentText += ",";
+    ui->textBrowser->setText(currentText);
+
+    // カンマは演算子ではないため、isOperatorClicked フラグは変更しません
+}

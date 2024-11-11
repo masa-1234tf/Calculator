@@ -1,4 +1,5 @@
 C:/programing_file/Calculator/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/Calculator_autogen/EWIEGA46WW/moc_mainwindow.cpp: C:/programing_file/Calculator/mainwindow.h \
+  C:/Qt/6.7.3/msvc2019_64/include/QtCore/QStack \
   C:/Qt/6.7.3/msvc2019_64/include/QtCore/q20functional.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtCore/q20memory.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtCore/q20type_traits.h \
@@ -77,6 +78,7 @@ C:/programing_file/Calculator/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/Calculat
   C:/Qt/6.7.3/msvc2019_64/include/QtCore/qsharedpointer.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtCore/qsharedpointer_impl.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtCore/qsize.h \
+  C:/Qt/6.7.3/msvc2019_64/include/QtCore/qstack.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtCore/qstring.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtCore/qstringalgorithms.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtCore/qstringbuilder.h \
@@ -110,6 +112,7 @@ C:/programing_file/Calculator/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/Calculat
   C:/Qt/6.7.3/msvc2019_64/include/QtCore/qtversionchecks.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtCore/qtypeinfo.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtCore/qtypes.h \
+  C:/Qt/6.7.3/msvc2019_64/include/QtCore/qurl.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtCore/qutf8stringview.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtCore/qvariant.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtCore/qvarlengtharray.h \
@@ -129,12 +132,17 @@ C:/programing_file/Calculator/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/Calculat
   C:/Qt/6.7.3/msvc2019_64/include/QtGui/qkeysequence.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtGui/qpaintdevice.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtGui/qpalette.h \
+  C:/Qt/6.7.3/msvc2019_64/include/QtGui/qpen.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtGui/qpixelformat.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtGui/qpixmap.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtGui/qpolygon.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtGui/qregion.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtGui/qrgb.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtGui/qrgba64.h \
+  C:/Qt/6.7.3/msvc2019_64/include/QtGui/qtextcursor.h \
+  C:/Qt/6.7.3/msvc2019_64/include/QtGui/qtextdocument.h \
+  C:/Qt/6.7.3/msvc2019_64/include/QtGui/qtextformat.h \
+  C:/Qt/6.7.3/msvc2019_64/include/QtGui/qtextoption.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtGui/qtgui-config.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtGui/qtguiexports.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtGui/qtguiglobal.h \
@@ -142,9 +150,17 @@ C:/programing_file/Calculator/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/Calculat
   C:/Qt/6.7.3/msvc2019_64/include/QtGui/qwindowdefs.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtGui/qwindowdefs_win.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtWidgets/QMainWindow \
+  C:/Qt/6.7.3/msvc2019_64/include/QtWidgets/QPushButton \
+  C:/Qt/6.7.3/msvc2019_64/include/QtWidgets/QTextBrowser \
+  C:/Qt/6.7.3/msvc2019_64/include/QtWidgets/qabstractbutton.h \
+  C:/Qt/6.7.3/msvc2019_64/include/QtWidgets/qabstractscrollarea.h \
+  C:/Qt/6.7.3/msvc2019_64/include/QtWidgets/qframe.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtWidgets/qmainwindow.h \
+  C:/Qt/6.7.3/msvc2019_64/include/QtWidgets/qpushbutton.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtWidgets/qsizepolicy.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtWidgets/qtabwidget.h \
+  C:/Qt/6.7.3/msvc2019_64/include/QtWidgets/qtextbrowser.h \
+  C:/Qt/6.7.3/msvc2019_64/include/QtWidgets/qtextedit.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtWidgets/qtwidgets-config.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtWidgets/qtwidgetsexports.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtWidgets/qtwidgetsglobal.h \
