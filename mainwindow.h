@@ -37,15 +37,18 @@ private slots:
     void on_pushButton_Equal_clicked();       // イコールボタンクリック時のスロット
     void on_pushButton_LeftParen_clicked();   // 括弧ボタン用のスロット
     void on_pushButton_RightParen_clicked();  // 括弧ボタン用のスロット
-    //void on_pushButton_Sqrt_clicked();         //平方根用のスロット
+    void on_pushButton_Sqrt_clicked();         //平方根用のスロット
+
 
 private:
     Ui::MainWindow *ui;
-    double firstNumber;             // 最初の数値
-    double secondNumber;            // 演算子の後の数値
-    QString currentOperator;        // 現在の演算子
-    bool isOperatorClicked;         // 演算子がクリックされたかどうか
-    bool isLastCharOperator();      // 最後の文字が演算子かどうかをチェックする関数
+
+
+    double firstNumber;                         // 最初の数値
+    double secondNumber;                        // 演算子の後の数値
+    QString currentOperator;                    // 現在の演算子
+    bool isOperatorClicked;                     // 演算子がクリックされたかどうか
+    bool isLastCharOperator();                  // 最後の文字が演算子かどうかをチェックする関数
     int getPrecedence(const QString &op);
     bool isLeftAssociative(const QString &op);
     QList<QString> tokenize(const QString &expression);

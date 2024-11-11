@@ -4,6 +4,7 @@
 #include <QPushButton>
 #include <QDebug>
 #include <QStack>
+#include <cmath>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -16,6 +17,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     // ディスプレイの初期表示を "0" に設定
     ui->textBrowser->setText("0");
+
     // 数字ボタン（0-9）をリストに追加
     QList<QPushButton*> digitButtons = {
         ui->pushButton_0, ui->pushButton_1, ui->pushButton_2,
@@ -23,28 +25,37 @@ MainWindow::MainWindow(QWidget *parent)
         ui->pushButton_6, ui->pushButton_7, ui->pushButton_8,
         ui->pushButton_9
     };
+
     // 各数字ボタンに対してスロットを接続
     for(auto button : digitButtons){
         connect(button, &QPushButton::clicked, this, &MainWindow::digitButtonClicked);
     }
+
     // 「00」ボタンに対してスロットを接続
     connect(ui->pushButton_00, &QPushButton::clicked, this, &MainWindow::on_pushButton_00_clicked);
+
     // 小数点ボタンに対してスロットを接続
     connect(ui->pushButton_dot, &QPushButton::clicked, this, &MainWindow::on_pushButton_dot_clicked);
+
     // クリアボタンに対してスロットを接続
     connect(ui->pushButton_Clear, &QPushButton::clicked, this, &MainWindow::on_pushButton_Clear_clicked);
+
     // 演算子ボタンに対してスロットを接続
     connect(ui->pushButton_Add, &QPushButton::clicked, this, &MainWindow::on_pushButton_Add_clicked);
     connect(ui->pushButton_Subtract, &QPushButton::clicked, this, &MainWindow::on_pushButton_Subtract_clicked);
     connect(ui->pushButton_Multiply, &QPushButton::clicked, this, &MainWindow::on_pushButton_Multiply_clicked);
     connect(ui->pushButton_Divide, &QPushButton::clicked, this, &MainWindow::on_pushButton_Divide_clicked);
+
     // イコールボタンに対してスロットを接続
     connect(ui->pushButton_Equal, &QPushButton::clicked, this, &MainWindow::on_pushButton_Equal_clicked);
+
     // 括弧ボタンに対してスロットを接続
     // 自動接続を利用する場合は以下のコメントを外す
     // connect(ui->pushButton_LeftParen, &QPushButton::clicked, this, &MainWindow::on_pushButton_LeftParen_clicked);
     // connect(ui->pushButton_RightParen, &QPushButton::clicked, this, &MainWindow::on_pushButton_RightParen_clicked);
 
+    // 平方根ボタンに対してスロットを接続（修正）
+    //connect(ui->pushButton_Sqrt, &QPushButton::clicked, this, &MainWindow::on_pushButton_Sqrt_clicked);
 }
 
 MainWindow::~MainWindow()
@@ -76,27 +87,42 @@ QList<QString> MainWindow::tokenize(const QString &expression)
 {
     QList<QString> tokens;
     QString numberBuffer;
+    QString functionBuffer; // 追加
 
     for(int i = 0; i < expression.length(); ++i){
         QChar c = expression[i];
 
-        if(c.isDigit() || c == '.'){
+        if(c.isLetter()){
+            functionBuffer += c;
+        }
+        else if(c.isDigit() || c == '.'){
+            if(!functionBuffer.isEmpty()){
+                tokens.append(functionBuffer);
+                functionBuffer.clear();
+            }
             numberBuffer += c;
         }
         else{
+            if(!functionBuffer.isEmpty()){
+                tokens.append(functionBuffer);
+                functionBuffer.clear();
+            }
             if(!numberBuffer.isEmpty()){
                 tokens.append(numberBuffer);
                 numberBuffer.clear();
             }
 
             if(c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')' ||
-                c == QChar(0x00D7) || c == QChar(0x00F7)){ // '×' と '÷' を追加
+                c == QChar(0x00D7) || c == QChar(0x00F7)){
                 tokens.append(QString(c));
             }
             // その他の文字は無視
         }
     }
 
+    if(!functionBuffer.isEmpty()){
+        tokens.append(functionBuffer);
+    }
     if(!numberBuffer.isEmpty()){
         tokens.append(numberBuffer);
     }
@@ -116,11 +142,15 @@ QList<QString> MainWindow::shuntingYard(const QList<QString> &tokens)
         if(isNumber){
             outputQueue.append(token);
         }
+        else if(token == "sqrt"){
+            operatorStack.push(token);
+        }
         else if(token == "+" || token == "-" || token == "*" || token == "/" || token == "×" || token == "÷"){
             while(!operatorStack.isEmpty()){
                 QString topOp = operatorStack.top();
                 if((getPrecedence(topOp) > getPrecedence(token)) ||
-                    (getPrecedence(topOp) == getPrecedence(token) && isLeftAssociative(topOp))){
+                    (getPrecedence(topOp) == getPrecedence(token) && isLeftAssociative(topOp)) ||
+                    (topOp == "sqrt")){ // 追加
                     outputQueue.append(operatorStack.pop());
                 }
                 else{
@@ -138,6 +168,9 @@ QList<QString> MainWindow::shuntingYard(const QList<QString> &tokens)
             }
             if(!operatorStack.isEmpty() && operatorStack.top() == "("){
                 operatorStack.pop(); // '(' を取り除く
+                if(!operatorStack.isEmpty() && operatorStack.top() == "sqrt"){
+                    outputQueue.append(operatorStack.pop());
+                }
             }
             else{
                 // 括弧のバランスが取れていない場合
@@ -146,7 +179,9 @@ QList<QString> MainWindow::shuntingYard(const QList<QString> &tokens)
                 return outputQueue;
             }
         }
-        // その他のトークンは無視
+        else{
+            // その他のトークンは無視
+        }
     }
 
     while(!operatorStack.isEmpty()){
@@ -174,6 +209,21 @@ double MainWindow::evaluateRPN(const QList<QString> &rpnTokens, bool &success)
         double num = token.toDouble(&isNumber);
         if(isNumber){
             evalStack.push(num);
+        }
+        else if(token == "sqrt"){
+            if(evalStack.isEmpty()){
+                success = false;
+                qDebug() << "Error: Insufficient values in stack for function sqrt";
+                return 0.0;
+            }
+            double operand = evalStack.pop();
+            if(operand < 0){
+                success = false;
+                qDebug() << "Error: Square root of negative number";
+                return 0.0;
+            }
+            double result = std::sqrt(operand);
+            evalStack.push(result);
         }
         else{
             if(evalStack.size() < 2){
@@ -503,20 +553,32 @@ void MainWindow::on_pushButton_LeftParen_clicked()
     qDebug() << "Left Parenthesis Button Clicked"; // デバッグメッセージ
     QString currentText = ui->textBrowser->toPlainText();
 
-    // もし演算子がクリックされた後でなければ、左括弧の前に演算子を追加する
-    if(isOperatorClicked == false && !currentText.isEmpty()){
-        // 最後の文字が数字または閉じ括弧である場合、掛け算を暗黙的に追加
-        QChar lastChar = currentText.at(currentText.length() - 1);
-        if(lastChar.isDigit() || lastChar == ')'){
-            currentText += QChar(0x00D7); // '×' を追加
-            currentText += "(";
+    // "Error" の場合は何もしない
+    if(currentText == "Error"){
+        return;
+    }
+
+    // 特殊ケース: ディスプレイが "0" の場合
+    if (currentText == "0") {
+        // "0" を "(" に置き換える
+        currentText = "(";
+    }
+    else {
+        // もし演算子がクリックされた後でなければ、左括弧の前に演算子を追加する
+        if(isOperatorClicked == false && !currentText.isEmpty()){
+            // 最後の文字が数字または閉じ括弧である場合、掛け算を暗黙的に追加
+            QChar lastChar = currentText.at(currentText.length() - 1);
+            if(lastChar.isDigit() || lastChar == ')'){
+                currentText += QChar(0x00D7); // '×' を追加
+                currentText += "(";
+            }
+            else{
+                currentText += "(";
+            }
         }
         else{
             currentText += "(";
         }
-    }
-    else{
-        currentText += "(";
     }
 
     ui->textBrowser->setText(currentText);
@@ -584,5 +646,38 @@ void MainWindow::on_pushButton_Equal_clicked()
 
     // 状態をリセット
     currentOperator = "";
+    isOperatorClicked = false;
+}
+
+// 平方根ボタンの処理（修正後）
+void MainWindow::on_pushButton_Sqrt_clicked()
+{
+    QString currentText = ui->textBrowser->toPlainText();
+
+    // "Error" の場合は何もしない
+    if(currentText == "Error"){
+        return;
+    }
+
+    // 特殊ケース: ディスプレイが "0" の場合
+    if (currentText == "0") {
+        // "0" を "sqrt(" に置き換える
+        currentText = "sqrt(";
+    }
+    else {
+        // もし直前に数字や閉じ括弧がある場合、掛け算を暗黙的に追加
+        if(!currentText.isEmpty()){
+            QChar lastChar = currentText.at(currentText.length() - 1);
+            if(lastChar.isDigit() || lastChar == ')'){
+                currentText += QChar(0x00D7); // '×' を追加
+            }
+        }
+
+        // "sqrt(" を追加
+        currentText += "sqrt(";
+    }
+
+    ui->textBrowser->setText(currentText);
+
     isOperatorClicked = false;
 }
