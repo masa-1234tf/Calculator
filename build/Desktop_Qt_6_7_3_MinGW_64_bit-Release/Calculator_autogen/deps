@@ -1,4 +1,5 @@
 Calculator_autogen/timestamp: \
+	C:/Qt/6.7.3/msvc2019_64/include/QtCore/QStack \
 	C:/Qt/6.7.3/msvc2019_64/include/QtCore/q20functional.h \
 	C:/Qt/6.7.3/msvc2019_64/include/QtCore/q20memory.h \
 	C:/Qt/6.7.3/msvc2019_64/include/QtCore/q20type_traits.h \
@@ -77,6 +78,7 @@ Calculator_autogen/timestamp: \
 	C:/Qt/6.7.3/msvc2019_64/include/QtCore/qsharedpointer.h \
 	C:/Qt/6.7.3/msvc2019_64/include/QtCore/qsharedpointer_impl.h \
 	C:/Qt/6.7.3/msvc2019_64/include/QtCore/qsize.h \
+	C:/Qt/6.7.3/msvc2019_64/include/QtCore/qstack.h \
 	C:/Qt/6.7.3/msvc2019_64/include/QtCore/qstring.h \
 	C:/Qt/6.7.3/msvc2019_64/include/QtCore/qstringalgorithms.h \
 	C:/Qt/6.7.3/msvc2019_64/include/QtCore/qstringbuilder.h \

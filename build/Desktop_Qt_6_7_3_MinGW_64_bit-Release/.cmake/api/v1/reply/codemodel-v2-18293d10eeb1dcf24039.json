@@ -7,7 +7,7 @@
 				{
 					"build" : ".",
 					"hasInstallRule" : true,
-					"jsonFile" : "directory-.-Release-6f7c45d119b861eaacc6.json",
+					"jsonFile" : "directory-.-Release-4e50846cf5f2ce3d6f78.json",
 					"minimumCMakeVersion" : 
 					{
 						"string" : "3.16"
@@ -44,7 +44,7 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "Calculator::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-Calculator-Release-b9b9cc6d17f789ac9091.json",
+					"jsonFile" : "target-Calculator-Release-f47d14009185d3b615f7.json",
 					"name" : "Calculator",
 					"projectIndex" : 0
 				},

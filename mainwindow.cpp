@@ -3,6 +3,7 @@
 #include "./ui_mainwindow.h"
 #include <QPushButton>
 #include <QDebug>
+#include <QStack>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -15,7 +16,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     // ディスプレイの初期表示を "0" に設定
     ui->textBrowser->setText("0");
-
     // 数字ボタン（0-9）をリストに追加
     QList<QPushButton*> digitButtons = {
         ui->pushButton_0, ui->pushButton_1, ui->pushButton_2,
@@ -40,11 +40,185 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->pushButton_Divide, &QPushButton::clicked, this, &MainWindow::on_pushButton_Divide_clicked);
     // イコールボタンに対してスロットを接続
     connect(ui->pushButton_Equal, &QPushButton::clicked, this, &MainWindow::on_pushButton_Equal_clicked);
+    // 括弧ボタンに対してスロットを接続
+    // 自動接続を利用する場合は以下のコメントを外す
+    // connect(ui->pushButton_LeftParen, &QPushButton::clicked, this, &MainWindow::on_pushButton_LeftParen_clicked);
+    // connect(ui->pushButton_RightParen, &QPushButton::clicked, this, &MainWindow::on_pushButton_RightParen_clicked);
+
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+// 演算子の優先順位を返す関数
+int MainWindow::getPrecedence(const QString &op)
+{
+    if(op == "+" || op == "-") {
+        return 1;
+    }
+    if(op == "*" || op == "/" || op == "×" || op == "÷") {
+        return 2;
+    }
+    return 0;
+}
+
+// 演算子の結合性を返す関数（左結合ならtrue）
+bool MainWindow::isLeftAssociative(const QString &op)
+{
+    // 現在の演算子はすべて左結合
+    return true;
+}
+
+// 数式をトークンに分割する関数
+QList<QString> MainWindow::tokenize(const QString &expression)
+{
+    QList<QString> tokens;
+    QString numberBuffer;
+
+    for(int i = 0; i < expression.length(); ++i){
+        QChar c = expression[i];
+
+        if(c.isDigit() || c == '.'){
+            numberBuffer += c;
+        }
+        else{
+            if(!numberBuffer.isEmpty()){
+                tokens.append(numberBuffer);
+                numberBuffer.clear();
+            }
+
+            if(c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')' ||
+                c == QChar(0x00D7) || c == QChar(0x00F7)){ // '×' と '÷' を追加
+                tokens.append(QString(c));
+            }
+            // その他の文字は無視
+        }
+    }
+
+    if(!numberBuffer.isEmpty()){
+        tokens.append(numberBuffer);
+    }
+
+    return tokens;
+}
+
+// Shunting YardアルゴリズムでトークンをRPNに変換する関数
+QList<QString> MainWindow::shuntingYard(const QList<QString> &tokens)
+{
+    QList<QString> outputQueue;
+    QStack<QString> operatorStack;
+
+    for(const QString &token : tokens){
+        bool isNumber;
+        token.toDouble(&isNumber);
+        if(isNumber){
+            outputQueue.append(token);
+        }
+        else if(token == "+" || token == "-" || token == "*" || token == "/" || token == "×" || token == "÷"){
+            while(!operatorStack.isEmpty()){
+                QString topOp = operatorStack.top();
+                if((getPrecedence(topOp) > getPrecedence(token)) ||
+                    (getPrecedence(topOp) == getPrecedence(token) && isLeftAssociative(topOp))){
+                    outputQueue.append(operatorStack.pop());
+                }
+                else{
+                    break;
+                }
+            }
+            operatorStack.push(token);
+        }
+        else if(token == "("){
+            operatorStack.push(token);
+        }
+        else if(token == ")"){
+            while(!operatorStack.isEmpty() && operatorStack.top() != "("){
+                outputQueue.append(operatorStack.pop());
+            }
+            if(!operatorStack.isEmpty() && operatorStack.top() == "("){
+                operatorStack.pop(); // '(' を取り除く
+            }
+            else{
+                // 括弧のバランスが取れていない場合
+                qDebug() << "Error: Mismatched parentheses";
+                outputQueue.clear();
+                return outputQueue;
+            }
+        }
+        // その他のトークンは無視
+    }
+
+    while(!operatorStack.isEmpty()){
+        QString topOp = operatorStack.pop();
+        if(topOp == "(" || topOp == ")"){
+            // 括弧のバランスが取れていない場合
+            qDebug() << "Error: Mismatched parentheses in operator stack";
+            outputQueue.clear();
+            return outputQueue;
+        }
+        outputQueue.append(topOp);
+    }
+
+    return outputQueue;
+}
+
+// RPNを評価する関数
+double MainWindow::evaluateRPN(const QList<QString> &rpnTokens, bool &success)
+{
+    QStack<double> evalStack;
+    success = true;
+
+    for(const QString &token : rpnTokens){
+        bool isNumber;
+        double num = token.toDouble(&isNumber);
+        if(isNumber){
+            evalStack.push(num);
+        }
+        else{
+            if(evalStack.size() < 2){
+                success = false;
+                qDebug() << "Error: Insufficient values in stack for operation" << token;
+                return 0.0;
+            }
+            double right = evalStack.pop();
+            double left = evalStack.pop();
+            double result = 0.0;
+
+            if(token == "+" ){
+                result = left + right;
+            }
+            else if(token == "-"){
+                result = left - right;
+            }
+            else if(token == "*" || token == "×"){
+                result = left * right;
+            }
+            else if(token == "/" || token == "÷"){
+                if(right == 0){
+                    success = false;
+                    qDebug() << "Error: Division by zero";
+                    return 0.0;
+                }
+                result = left / right;
+            }
+            else{
+                success = false;
+                qDebug() << "Error: Unknown operator" << token;
+                return 0.0;
+            }
+
+            evalStack.push(result);
+        }
+    }
+
+    if(evalStack.size() != 1){
+        success = false;
+        qDebug() << "Error: Stack size not equal to 1 after evaluation";
+        return 0.0;
+    }
+
+    return evalStack.pop();
 }
 
 // 最後の文字が演算子かどうかをチェック
@@ -54,7 +228,7 @@ bool MainWindow::isLastCharOperator()
     if(text.isEmpty()) return false;
     QChar lastChar = text.at(text.length() - 1);
     return (lastChar == '+' || lastChar == '-' || lastChar == '*' || lastChar == '/' ||
-            lastChar == QChar(0x00D7) || lastChar == QChar(0x00F7));   // '×' をQCharで追加 // '÷' をQCharで追加
+            lastChar == QChar(0x00D7) || lastChar == QChar(0x00F7));   // '×' と '÷' をQCharで追加
 }
 
 // 数字入力に関しての共通の処理
@@ -323,7 +497,48 @@ void MainWindow::on_pushButton_Divide_clicked()
     }
 }
 
-// イコールボタンの処理
+// 括弧ボタンの処理
+void MainWindow::on_pushButton_LeftParen_clicked()
+{
+    qDebug() << "Left Parenthesis Button Clicked"; // デバッグメッセージ
+    QString currentText = ui->textBrowser->toPlainText();
+
+    // もし演算子がクリックされた後でなければ、左括弧の前に演算子を追加する
+    if(isOperatorClicked == false && !currentText.isEmpty()){
+        // 最後の文字が数字または閉じ括弧である場合、掛け算を暗黙的に追加
+        QChar lastChar = currentText.at(currentText.length() - 1);
+        if(lastChar.isDigit() || lastChar == ')'){
+            currentText += QChar(0x00D7); // '×' を追加
+            currentText += "(";
+        }
+        else{
+            currentText += "(";
+        }
+    }
+    else{
+        currentText += "(";
+    }
+
+    ui->textBrowser->setText(currentText);
+    isOperatorClicked = false;
+}
+
+void MainWindow::on_pushButton_RightParen_clicked()
+{
+    qDebug() << "Right Parenthesis Button Clicked"; // デバッグメッセージ
+    QString currentText = ui->textBrowser->toPlainText();
+
+    // 右括弧を追加する前に、括弧のバランスを確認
+    int openParens = currentText.count('(');
+    int closeParens = currentText.count(')');
+    if(openParens > closeParens){
+        currentText += ")";
+        ui->textBrowser->setText(currentText);
+    }
+    // バランスが取れていない場合は追加しない
+}
+
+// イコールボタンの処理の修正
 void MainWindow::on_pushButton_Equal_clicked()
 {
     QString expression = ui->textBrowser->toPlainText();
@@ -338,75 +553,30 @@ void MainWindow::on_pushButton_Equal_clicked()
         return;
     }
 
-    // 演算子を統一（× を * に、÷ を / に）
+    // '×' を '*' に、'÷' を '/' に置き換え
     expression.replace(QChar(0x00D7), "*");
     expression.replace(QChar(0x00F7), "/");
 
-    // トークン化（数字と演算子を分ける）
-    QStringList tokens;
-    QString numberBuffer = "";
-
-    for(int i = 0; i < expression.length(); ++i){
-        QChar c = expression[i];
-        if(c.isDigit() || c == '.'){
-            numberBuffer += c;
-        }
-        else {
-            if(!numberBuffer.isEmpty()){
-                tokens.append(numberBuffer);
-                numberBuffer = "";
-            }
-            tokens.append(QString(c));
-        }
-    }
-    if(!numberBuffer.isEmpty()){
-        tokens.append(numberBuffer);
-    }
-
-    // 計算の実行（左から右へ順に計算）
+    // Shunting Yardアルゴリズムで数式をトークン化
+    QList<QString> tokens = tokenize(expression);
     if(tokens.isEmpty()){
-        return;
-    }
-
-    bool ok;
-    double result = tokens[0].toDouble(&ok);
-    if(!ok){
         ui->textBrowser->setText("Error");
         return;
     }
 
-    for(int i = 1; i < tokens.size(); i += 2){
-        if(i + 1 >= tokens.size()){
-            break;
-        }
-        QString op = tokens[i];
-        double num = tokens[i + 1].toDouble(&ok);
-        if(!ok){
-            ui->textBrowser->setText("Error");
-            return;
-        }
+    // Shunting YardアルゴリズムでRPNに変換
+    QList<QString> rpn = shuntingYard(tokens);
+    if(rpn.isEmpty()){
+        ui->textBrowser->setText("Error");
+        return;
+    }
 
-        if(op == "+"){
-            result += num;
-        }
-        else if(op == "-"){
-            result -= num;
-        }
-        else if(op == "*"){
-            result *= num;
-        }
-        else if(op == "/"){
-            if(num == 0){
-                ui->textBrowser->setText("Error");
-                return;
-            }
-            result /= num;
-        }
-        else{
-            // 不明な演算子
-            ui->textBrowser->setText("Error");
-            return;
-        }
+    // RPNを評価
+    bool success;
+    double result = evaluateRPN(rpn, success);
+    if(!success){
+        ui->textBrowser->setText("Error");
+        return;
     }
 
     // 結果を表示（小数点以下15桁まで）

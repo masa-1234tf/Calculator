@@ -1,4 +1,5 @@
 C:/programing_file/Calculator/build/Desktop_Qt_6_7_3_MinGW_64_bit-Release/Calculator_autogen/EWIEGA46WW/moc_mainwindow.cpp: C:/programing_file/Calculator/mainwindow.h \
+  C:/Qt/6.7.3/msvc2019_64/include/QtCore/QStack \
   C:/Qt/6.7.3/msvc2019_64/include/QtCore/q20functional.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtCore/q20memory.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtCore/q20type_traits.h \
@@ -77,6 +78,7 @@ C:/programing_file/Calculator/build/Desktop_Qt_6_7_3_MinGW_64_bit-Release/Calcul
   C:/Qt/6.7.3/msvc2019_64/include/QtCore/qsharedpointer.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtCore/qsharedpointer_impl.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtCore/qsize.h \
+  C:/Qt/6.7.3/msvc2019_64/include/QtCore/qstack.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtCore/qstring.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtCore/qstringalgorithms.h \
   C:/Qt/6.7.3/msvc2019_64/include/QtCore/qstringbuilder.h \

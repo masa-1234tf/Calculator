@@ -7,6 +7,7 @@ file(GLOB_RECURSE NEW_GLOB LIST_DIRECTORIES false "C:/programing_file/Calculator
 set(OLD_GLOB
   "C:/programing_file/Calculator/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/CMakeFiles/ShowIncludes/main.c"
   "C:/programing_file/Calculator/build/Desktop_Qt_6_7_3_MinGW_64_bit-Release/CMakeFiles/ShowIncludes/main.c"
+  "C:/programing_file/Calculator/build/Desktop_Qt_6_8_0_MSVC2022_ARM64-Debug/CMakeFiles/ShowIncludes/main.c"
   )
 if(NOT "${NEW_GLOB}" STREQUAL "${OLD_GLOB}")
   message("-- GLOB mismatch!")
@@ -49,6 +50,7 @@ set(OLD_GLOB
   "C:/programing_file/Calculator/build/Desktop_Qt_6_7_3_MinGW_64_bit-Release/CMakeFiles/3.29.3/CompilerIdCXX/CMakeCXXCompilerId.cpp"
   "C:/programing_file/Calculator/build/Desktop_Qt_6_7_3_MinGW_64_bit-Release/Calculator_autogen/EWIEGA46WW/moc_mainwindow.cpp"
   "C:/programing_file/Calculator/build/Desktop_Qt_6_7_3_MinGW_64_bit-Release/Calculator_autogen/mocs_compilation.cpp"
+  "C:/programing_file/Calculator/build/Desktop_Qt_6_8_0_MSVC2022_ARM64-Debug/CMakeFiles/3.29.3/CompilerIdCXX/CMakeCXXCompilerId.cpp"
   "C:/programing_file/Calculator/main.cpp"
   "C:/programing_file/Calculator/mainwindow.cpp"
   )
@@ -73,6 +75,7 @@ set(OLD_GLOB
   "C:/programing_file/Calculator/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/Calculator_autogen/include/ui_mainwindow.h"
   "C:/programing_file/Calculator/build/Desktop_Qt_6_7_3_MinGW_64_bit-Release/CMakeFiles/ShowIncludes/foo.h"
   "C:/programing_file/Calculator/build/Desktop_Qt_6_7_3_MinGW_64_bit-Release/Calculator_autogen/include/ui_mainwindow.h"
+  "C:/programing_file/Calculator/build/Desktop_Qt_6_8_0_MSVC2022_ARM64-Debug/CMakeFiles/ShowIncludes/foo.h"
   "C:/programing_file/Calculator/mainwindow.h"
   )
 if(NOT "${NEW_GLOB}" STREQUAL "${OLD_GLOB}")

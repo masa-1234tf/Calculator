@@ -5,10 +5,17 @@
 #include <QMainWindow>
 #include <QPushButton>
 #include <QTextBrowser>
-
+#include <QStack>
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
+enum Operator {
+    NONE,
+    ADD,
+    SUBTRACT,
+    MULTIPLY,
+    DIVIDE
+};
 
 class MainWindow : public QMainWindow
 {
@@ -28,6 +35,9 @@ private slots:
     void on_pushButton_Multiply_clicked();    // 乗算ボタンクリック時のスロット
     void on_pushButton_Divide_clicked();      // 除算ボタンクリック時のスロット
     void on_pushButton_Equal_clicked();       // イコールボタンクリック時のスロット
+    void on_pushButton_LeftParen_clicked();   // 括弧ボタン用のスロット
+    void on_pushButton_RightParen_clicked();  // 括弧ボタン用のスロット
+    //void on_pushButton_Sqrt_clicked();         //平方根用のスロット
 
 private:
     Ui::MainWindow *ui;
@@ -36,6 +46,11 @@ private:
     QString currentOperator;        // 現在の演算子
     bool isOperatorClicked;         // 演算子がクリックされたかどうか
     bool isLastCharOperator();      // 最後の文字が演算子かどうかをチェックする関数
+    int getPrecedence(const QString &op);
+    bool isLeftAssociative(const QString &op);
+    QList<QString> tokenize(const QString &expression);
+    QList<QString> shuntingYard(const QList<QString> &tokens);
+    double evaluateRPN(const QList<QString> &rpnTokens, bool &success);
 };
 
 #endif // MAINWINDOW_H
